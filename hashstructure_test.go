@@ -515,6 +515,24 @@ func TestHash_includableMap(t *testing.T) {
 			testIncludableMap{Map: map[string]string{"bar": "baz"}},
 			false,
 		},
+
+		{
+			testIncludableMapMap{"foo": "bar"},
+			testIncludableMapMap{"foo": "bar"},
+			true,
+		},
+
+		{
+			testIncludableMapMap{"foo": "bar", "ignore": "true"},
+			testIncludableMapMap{"foo": "bar"},
+			true,
+		},
+
+		{
+			testIncludableMapMap{"foo": "bar", "ignore": "true"},
+			testIncludableMapMap{"bar": "baz"},
+			false,
+		},
 	}
 
 	for _, tc := range cases {
@@ -562,4 +580,10 @@ func (t testIncludableMap) HashIncludeMap(field string, k, v interface{}) (bool,
 	}
 
 	return true, nil
+}
+
+type testIncludableMapMap map[string]string
+
+func (t testIncludableMapMap) HashIncludeMap(_ string, k, _ interface{}) (bool, error) {
+	return k.(string) != "ignore", nil
 }
