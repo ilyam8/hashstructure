@@ -176,9 +176,18 @@ func (w *walker) visit(v reflect.Value, opts *visitOpts) (uint64, error) {
 
 	case reflect.Map:
 		var includeMap IncludableMap
-		if opts != nil && opts.Struct != nil {
-			if v, ok := opts.Struct.(IncludableMap); ok {
+		var field string
+		if v.CanInterface() {
+			if v, ok := v.Interface().(IncludableMap); ok {
 				includeMap = v
+			}
+		}
+		if opts != nil && opts.Struct != nil {
+			field = opts.StructField
+			if includeMap == nil {
+				if v, ok := opts.Struct.(IncludableMap); ok {
+					includeMap = v
+				}
 			}
 		}
 
@@ -189,7 +198,7 @@ func (w *walker) visit(v reflect.Value, opts *visitOpts) (uint64, error) {
 			v := v.MapIndex(k)
 			if includeMap != nil {
 				incl, err := includeMap.HashIncludeMap(
-					opts.StructField, k.Interface(), v.Interface())
+					field, k.Interface(), v.Interface())
 				if err != nil {
 					return 0, err
 				}
